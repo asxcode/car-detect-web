@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Video Upload</title>
+    <title>Upload</title>
 </head>
 <body>
-    <h1>Upload a Video</h1>
+    <h1>Upload a Video or Image</h1>
     <form method="POST" action="/upload" enctype="multipart/form-data">
-        <input type="file" name="video" accept="video/*">
+        <input type="file" name="upfile" accept="video/*,image/*">
         <input type="submit" value="Upload">
     </form>
 </body>
