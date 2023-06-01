@@ -10,13 +10,12 @@ warnings.filterwarnings('ignore')
 import torch
 import numpy as np
 from skimage import io
-from pathlib import path
 
 
 app = Flask(__name__)
 
 # Load the YOLOv5s6 model
-model = torch.hub.load('ultraalytics/yolov5', 'yolov5s6', pretrained='true')
+model = torch.hub.load('model/ultralytics-yolov5-5eb7f7d/', 'custom', path='./model/yolov5s6.pt', source='local')
 
 # Set the device to 'cuda' if available, otherwise use 'cpu'
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
