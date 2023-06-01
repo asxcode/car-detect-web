@@ -53,6 +53,14 @@ def index():
 
 @app.route('/upload', methods=['POST'])
 def upload():
+    vehicle_counts = {
+        'bicycle': 0,
+        'car': 0,
+        'motorcycle': 0,
+        'bus': 0,
+        'truck': 0,
+    }
+
     # Get the base64 encoded image from the request
     image_data = request.json['image']
 
@@ -62,7 +70,27 @@ def upload():
     # open the image using PIL
     image = Image.open(BytesIO(image_bytes))
 
-    return
+    # Perform object detection on the image
+    results = model(image)
+
+    # Get the indices of all vehicle detections
+    vehicle_indices = np.isin(results.pred[0][:, -1].detach().cpu().numpy(), [1, 2, 3, 4, 5, 6, 7])
+
+    # Filter out the vehicle detections
+    vehicle_results = results.pred[0][vehicle_indices]
+
+    # Map class_index with labels, and fill vehicle_counts
+    for vehicle in vehicle_results:
+        class_index = int(vehicle[-1].detach().cpu().numpy())
+        label = class_labels[class_index]
+        vehicle_counts[label] += 1
+
+    response = {
+        'status': 'success',
+        'data': vehicle_counts
+    }
+
+    return jsonify(response)
 
 if __name__ == '__main__':
     app.run(debug=True)
