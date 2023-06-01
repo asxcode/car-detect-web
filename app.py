@@ -40,9 +40,6 @@ class_labels = [
 
 class VehicleCount(Resource):
     def get(self):
-        # Get the base64 encoded image from the request
-        image_data = request.json['image']
-
         vehicle_counts = {
             'bicycle': 0,
             'car': 0,
@@ -51,11 +48,20 @@ class VehicleCount(Resource):
             'truck': 0,
         }
 
-        # Decode the base64 image
-        image_bytes = base64.b64decode(image_data)
+        try:
+            # Get the base64 encoded image from the request
+            image_data = request.json['image']
 
-        # open the image using PIL
-        image = Image.open(BytesIO(image_bytes))
+            # Decode the base64 image
+            image_bytes = base64.b64decode(image_data)
+
+            # open the image using PIL
+            image = Image.open(BytesIO(image_bytes))
+        except:
+            response_obj = {
+                'error': '"image" key in payload: please provide base64 formatted value.',
+            }
+            return response_obj, 415
 
         # Perform object detection on the image
         results = model(image)
@@ -73,21 +79,19 @@ class VehicleCount(Resource):
             vehicle_counts[label] += 1
 
         response = {
-            'status': 'success',
             'data': vehicle_counts
         }
 
-        return jsonify(response)
+        return response, 200
 
 
 
 @app.route('/')
 def index():
-    response = {
-        'status': 'success',
+    response_obj = {
         'message': 'API is up!'
     }
-    return jsonify(response)
+    return response, 200
 
 
 api.add_resource(VehicleCount, '/api/vehicle-count')
