@@ -1,18 +1,19 @@
-from flask import Flask, render_template, request, jsonify, redirect, Response
-import os
-import uuid
+import torch
+from flask import Flask, request, jsonify
+from flask_restful import Resource, Api
+import numpy as np
 from PIL import Image
 import base64
 from io import BytesIO
 import cv2
 import warnings
 warnings.filterwarnings('ignore')
-import torch
-import numpy as np
-from skimage import io
 
-
+# Creating the flask app
 app = Flask(__name__)
+
+# Creating an API object
+api = Api(app)
 
 # Load the YOLOv5s6 model
 model = torch.hub.load('model/ultralytics-yolov5-5eb7f7d/', 'custom', path='./model/yolov5s6.pt', source='local')
@@ -34,10 +35,49 @@ class_labels = [
     'remote', 'keyboard', 'cell phone', 'microwave', 'oven', 'toaster', 'sink',
     'refrigerator', 'book', 'clock', 'vase', 'scissors', 'teddy bear', 'hair drier',
     'toothbrush'
-]
+]    
 
-# Define colors for each label
-label_colors = [(0, 0, 255), (0, 255, 0), (255, 0, 0), (255, 255, 0), (0, 255, 255), (255, 0, 255)]
+
+class VehicleCount(Resource):
+    def get(self):
+        # Get the base64 encoded image from the request
+        image_data = request.json['image']
+
+        vehicle_counts = {
+            'bicycle': 0,
+            'car': 0,
+            'motorcycle': 0,
+            'bus': 0,
+            'truck': 0,
+        }
+
+        # Decode the base64 image
+        image_bytes = base64.b64decode(image_data)
+
+        # open the image using PIL
+        image = Image.open(BytesIO(image_bytes))
+
+        # Perform object detection on the image
+        results = model(image)
+
+        # Get the indices of all vehicle detections
+        vehicle_indices = np.isin(results.pred[0][:, -1].detach().cpu().numpy(), [1, 2, 3, 4, 5, 6, 7])
+
+        # Filter out the vehicle detections
+        vehicle_results = results.pred[0][vehicle_indices]
+
+        # Map class_index with labels, and fill vehicle_counts
+        for vehicle in vehicle_results:
+            class_index = int(vehicle[-1].detach().cpu().numpy())
+            label = class_labels[class_index]
+            vehicle_counts[label] += 1
+
+        response = {
+            'status': 'success',
+            'data': vehicle_counts
+        }
+
+        return jsonify(response)
 
 
 
@@ -47,50 +87,11 @@ def index():
         'status': 'success',
         'message': 'API is up!'
     }
-    
     return jsonify(response)
 
 
-@app.route('/upload', methods=['POST'])
-def upload():
-    vehicle_counts = {
-        'bicycle': 0,
-        'car': 0,
-        'motorcycle': 0,
-        'bus': 0,
-        'truck': 0,
-    }
+api.add_resource(VehicleCount, '/api/vehicle-count')
 
-    # Get the base64 encoded image from the request
-    image_data = request.json['image']
-
-    # Decode the base64 image
-    image_bytes = base64.b64decode(image_data)
-
-    # open the image using PIL
-    image = Image.open(BytesIO(image_bytes))
-
-    # Perform object detection on the image
-    results = model(image)
-
-    # Get the indices of all vehicle detections
-    vehicle_indices = np.isin(results.pred[0][:, -1].detach().cpu().numpy(), [1, 2, 3, 4, 5, 6, 7])
-
-    # Filter out the vehicle detections
-    vehicle_results = results.pred[0][vehicle_indices]
-
-    # Map class_index with labels, and fill vehicle_counts
-    for vehicle in vehicle_results:
-        class_index = int(vehicle[-1].detach().cpu().numpy())
-        label = class_labels[class_index]
-        vehicle_counts[label] += 1
-
-    response = {
-        'status': 'success',
-        'data': vehicle_counts
-    }
-
-    return jsonify(response)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()
