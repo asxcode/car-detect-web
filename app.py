@@ -1,9 +1,9 @@
 from flask import Flask, render_template, request, jsonify, redirect, Response
 import os
 import uuid
-from PIL import Image as im
+from PIL import Image
 import base64
-import io
+from io import BytesIO
 import cv2
 import warnings
 warnings.filterwarnings('ignore')
@@ -53,8 +53,16 @@ def index():
 
 @app.route('/upload', methods=['POST'])
 def upload():
-    return
+    # Get the base64 encoded image from the request
+    image_data = request.json['image']
 
+    # Decode the base64 image
+    image_bytes = base64.b64decode(image_data)
+
+    # open the image using PIL
+    image = Image.open(BytesIO(image_bytes))
+
+    return
 
 if __name__ == '__main__':
     app.run(debug=True)
