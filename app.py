@@ -6,6 +6,7 @@ from PIL import Image
 import base64
 from io import BytesIO
 import cv2
+import uuid
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -86,13 +87,10 @@ class VehicleCount(Resource):
 
 @app.route('/')
 def index():
-    response_obj = {
-        'message': 'API is up!'
-    }
-    return response, 200
+    return render_template('index.html')
 
-@app.route('/vehicle-count')
-def vehicle_count_page(request):
+@app.route('/vehicle-count', methods=['POST'])
+def vehicle_count_page():
         vehicle_counts = {
         'bicycle': 0,
         'car': 0,
@@ -101,23 +99,29 @@ def vehicle_count_page(request):
         'truck': 0,
         }
 
-        try:
-            # Get the base64 encoded image from the request
-            image_data = request.json['image']
+        # Get the base64 encoded image from the request
+        # image = request.files['image']
+        # image = cv2.imread(image)
 
-            # Decode the base64 image
-            image_bytes = base64.b64decode(image_data)
+        # # Decode the base64 image
+        # image_bytes = base64.b64decode(image_data)
 
-            # open the image using PIL
-            image = Image.open(BytesIO(image_bytes))
-        except:
-            response_obj = {
-                'error': '"image" key in payload: please provide base64 formatted value.',
-            }
-            return response_obj, 415
+        # # open the image using PIL
+        # img = cv2.imdecode(image, cv2.IMREAD_COLOR)
+        # except:
+        #     response_obj = {
+        #         'error': '"image" key in payload: please provide base64 formatted value.',
+        #     }
+        #     return response_obj, 415
+        #read image file string data
+        filestr = request.files['image'].read()
+        #convert string data to numpy array
+        file_bytes = np.fromstring(filestr, np.uint8)
+        # convert numpy array to image
+        img = cv2.imdecode(file_bytes, cv2.IMREAD_UNCHANGED)
 
         # Perform object detection on the image
-        results = model(image)
+        results = model(img)
 
         # Get the indices of all vehicle detections
         vehicle_indices = np.isin(results.pred[0][:, -1].detach().cpu().numpy(), [1, 2, 3, 4, 5, 6, 7])
@@ -130,16 +134,14 @@ def vehicle_count_page(request):
             class_index = int(vehicle[-1].detach().cpu().numpy())
             label = class_labels[class_index]
             vehicle_counts[label] += 1
-            bbox = car[:4].detach().cpu().numpy()
-            cv2.rectangle(image, (int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3])), (0, 255, 0), 2)
+            bbox = vehicle[:4].detach().cpu().numpy()
+            cv2.rectangle(img, (int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3])), (0, 255, 0), 2)
         
+        unique_filename = str(uuid.uuid4())
 
-        cv2.imwrite('user_files/image.jpg', image)
-        response = {
-            'data': vehicle_counts
-        }
+        cv2.imwrite(f'static/{unique_filename}.jpg', img)
 
-        return render_template('result.html', image=image, response=response)
+        return render_template('result.html', image=unique_filename, response=vehicle_counts)
     
 
 # api.add_resource(VehicleCount, '/api/vehicle-count')
