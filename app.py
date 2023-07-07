@@ -21,6 +21,9 @@ model = model.to(device).eval()
 # Creating the flask app
 app = Flask(__name__)
 
+# Creating an API object
+api = Api(app)
+
 # Define the class labels for COCO dataset
 class_labels = [
     'person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus', 'train', 'truck', 'boat',
@@ -84,10 +87,14 @@ class VehicleCount(Resource):
         return response, 200
 
 
-
 @app.route('/')
 def index():
     return render_template('index.html')
+
+
+# Define API route
+api.add_resource(VehicleCount, '/api/vehicle-count')
+
 
 @app.route('/vehicle-count', methods=['POST'])
 def vehicle_count_page():
@@ -99,20 +106,6 @@ def vehicle_count_page():
         'truck': 0,
         }
 
-        # Get the base64 encoded image from the request
-        # image = request.files['image']
-        # image = cv2.imread(image)
-
-        # # Decode the base64 image
-        # image_bytes = base64.b64decode(image_data)
-
-        # # open the image using PIL
-        # img = cv2.imdecode(image, cv2.IMREAD_COLOR)
-        # except:
-        #     response_obj = {
-        #         'error': '"image" key in payload: please provide base64 formatted value.',
-        #     }
-        #     return response_obj, 415
         #read image file string data
         filestr = request.files['image'].read()
         #convert string data to numpy array
@@ -143,9 +136,6 @@ def vehicle_count_page():
 
         return render_template('result.html', image=unique_filename, response=vehicle_counts)
     
-
-# api.add_resource(VehicleCount, '/api/vehicle-count')
-
 
 if __name__ == '__main__':
     app.run()
