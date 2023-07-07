@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>API Documentation</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.0.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container">
+        <header class="d-flex flex-wrap align-items-center justify-content-center justify-content-md-between py-3">
+            <div class="col-md-4 mb-2 mb-md-0">
+                <a href="/" class="d-inline-flex link-body-emphasis text-decoration-none">
+                    <h4>Car Detect Web</h4>
+                </a>
+            </div>
+            <ul class="nav col-12 col-md-auto mb-2 justify-content-center mb-md-0">
+                <li><a href="/" class="nav-link px-2" style="text-decoration:none">Home</a></li>
+                <li><a href="/api-reference" class="nav-link px-2">API Reference</a></li>
+                <li><a href="https://github.com/arv1nd-s/car-detect-web" class="nav-link px-2">GitHub</a></li>
+            </ul>
+        </header>
+    </div>
+
+  <div class="container mt-5">
+    <h1 class="text-center">API Documentation</h1>
+
+    <div class="card mt-4">
+      <div class="card-header">
+        <h2 class="card-title">Endpoint</h2>
+      </div>
+      <div class="card-body">
+        <p>
+          <strong>GET /api/vehicle-count</strong>
+        </p>
+      </div>
+    </div>
+
+    <h2 class="mt-4">Description</h2>
+    <p>
+      This API endpoint performs object detection on an image and returns the count of different vehicle types in JSON format.
+    </p>
+
+    <h2 class="mt-4">Request</h2>
+    <p>
+      The request should be a JSON object with the following properties:
+    </p>
+    <pre><code>
+{
+  "image": "base64-encoded-image"
+}
+    </code></pre>
+    <p>
+      <strong>Note:</strong> The "image" property should contain the base64-encoded image data.
+    </p>
+
+    <h2 class="mt-4">Response</h2>
+    <p>
+      The API response will be a JSON object with the following format:
+    </p>
+    <pre><code>
+{
+  "data": {
+    "bicycle": 2,
+    "car": 5,
+    "motorcycle": 1,
+    "bus": 0,
+    "truck": 3
+  }
+}
+    </code></pre>
+    <p>
+      The "data" property contains the counts of different vehicle types identified in the provided image.
+    </p>
+
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.0.2/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -96,6 +96,11 @@ def index():
 api.add_resource(VehicleCount, '/api/vehicle-count')
 
 
+@app.route('/api-reference')
+def api_reference():
+    return render_template('api_docs.html')
+
+
 @app.route('/vehicle-count', methods=['POST'])
 def vehicle_count_page():
         vehicle_counts = {
@@ -135,7 +140,6 @@ def vehicle_count_page():
         cv2.imwrite(f'static/{unique_filename}.jpg', img)
 
         return render_template('result.html', image=unique_filename, response=vehicle_counts)
-    
 
 if __name__ == '__main__':
     app.run()
