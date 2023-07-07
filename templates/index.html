@@ -47,12 +47,13 @@
             </div>
           </div>
           <br>
-          <form action="/search/" method="get">
-            
+
+        <form action="/vehicle-count" method="post" enctype="multipart/form-data">
         <div class="lc-block">
             <div class="mb-3">
-                <label for="formFile" class="form-label"><b>Upload image</b></label>
-                <input class="form-control" type="file" id="formFile">
+                <label for="formFile" class="form-label"><h5>Upload image</h5></label>
+                <input class="form-control" type="file" id="formFile" name="image"><br>
+                <button class="btn btn-dark" type="submit">Submit</button>
             </div>
         </div>
         </div>
